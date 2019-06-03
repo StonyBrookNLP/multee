@@ -1,0 +1,3 @@
+allennlp==0.8.4
+spacy==2.1.0
+neuralcoref==4.0

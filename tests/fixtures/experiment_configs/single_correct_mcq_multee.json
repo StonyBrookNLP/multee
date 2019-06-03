@@ -1,0 +1,130 @@
+{
+    "dataset_reader": {
+        "type": "single_correct_mcq_entailment",
+        "token_indexers": {
+            "tokens": {
+                "lowercase_tokens": true,
+                "type": "single_id"
+            }
+        },
+    },
+    "train_data_path": "tests/fixtures/datasets/single-correct-mcq-entailment-dataset-fixture.jsonl",
+    "validation_data_path": "tests/fixtures/datasets/single-correct-mcq-entailment-dataset-fixture.jsonl",
+
+    "model": {
+        "type": "single_correct_mcq_multee_esim",
+        "text_field_embedder": {
+            "token_embedders": {
+                "tokens": {
+                    "pretrained_file": "allennlp/allennlp/tests/fixtures/embeddings/glove.6B.100d.sample.txt.gz",
+                    "embedding_dim": 100,
+                    "trainable": false,
+                    "type": "embedding"
+                }                
+            }
+        },
+        "dropout": 0.5,
+        "encoder": {
+            "bidirectional": true,
+            "hidden_size": 100,
+            "input_size": 100,
+            "num_layers": 1,
+            "type": "lstm"
+        },
+        "inference_encoder": {
+            "bidirectional": true,
+            "hidden_size": 100,
+            "input_size": 100,
+            "num_layers": 1,
+            "type": "lstm"
+        },
+        "output_feedforward": {
+            "activations": "relu",
+            "dropout": 0.5,
+            "hidden_dims": 100,
+            "input_dim": 800,
+            "num_layers": 1
+        },
+        "output_logit": {
+            "activations": "linear",
+            "hidden_dims": 3,
+            "input_dim": 100,
+            "num_layers": 1
+        },
+        "projection_feedforward": {
+            "activations": "relu",
+            "hidden_dims": 100,
+            "input_dim": 800,
+            "num_layers": 1
+        },
+        "similarity_function": {
+            "type": "dot_product"
+        },
+
+        "contextualize_pair_comparators": false,
+        "coverage_loss": {
+            "type": "bce"
+        },
+        "final_feedforward": {
+            "activations": [
+                "relu",
+                "relu",
+                "linear"
+            ],
+            "dropout": [
+                0.2,
+                0.2,
+                0
+            ],
+            "hidden_dims": [
+                100,
+                100,
+                3
+            ],
+            "input_dim": 100,
+            "num_layers": 3
+        },
+ 
+        "pair_context_encoder": {
+            "bidirectional": true,
+            "hidden_size": 100,
+            "input_size": 100,
+            "num_layers": 1,
+            "type": "lstm"
+        },
+        "pair_feedforward": {
+            "activations": [
+                "relu",
+                "linear"
+            ],
+            "dropout": [
+                0.2,
+                0
+            ],
+            "hidden_dims": [
+                100,
+                1
+            ],
+            "input_dim": 300,
+            "num_layers": 2
+        },
+    },
+
+    "iterator": {
+        "batch_size": 2,
+        "type": "basic"
+    },
+
+    "trainer": {
+        "cuda_device": -1,
+        "num_epochs": 1,
+        "optimizer": {
+            "type": "adam"
+        },
+        "validation_metric": "+accuracy"
+    },
+
+    "vocabulary": {
+        "tokens_to_add": {"labels": ["entailment", "neutral"]}
+    },
+}

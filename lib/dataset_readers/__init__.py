@@ -1,0 +1,3 @@
+from lib.dataset_readers.entailment_pair import EntailmentPairReader
+from lib.dataset_readers.single_correct_mcq_entailment import SingleCorrectMcqEntailmentReader
+from lib.dataset_readers.multiple_correct_mcq_entailment import MultipleCorrectMcqEntailmentReader

@@ -1,0 +1,1 @@
+from lib.predictors.entailment_pair import EntailmentPairPredictor

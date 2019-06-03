@@ -1,0 +1,213 @@
+{
+    "dataset_reader": {
+        "type": "multiple_correct_mcq_entailment",
+        "token_indexers": {
+            "tokens": {
+                "lowercase_tokens": true,
+                "type": "single_id"
+            }
+        },
+    },
+    "train_data_path": "data/preprocessed/multirc/multirc-train-processed-questions.jsonl",
+    "validation_data_path": "data/preprocessed/multirc/multirc-dev-processed-questions.jsonl",
+
+    "model": {
+        "type": "multiple_correct_mcq_multee_esim",
+
+        // Transfer modules from esim
+        "text_field_embedder": {
+            "_pretrained": {
+                "archive_file": "serialization_dir/final_esim_glove_snli_multinli_for_multirc/model.tar.gz",
+                "module_path": "_text_field_embedder",
+                "freeze": true
+            }
+        },
+        "inference_encoder": {
+            "_pretrained": {
+                "archive_file": "serialization_dir/final_esim_glove_snli_multinli_for_multirc/model.tar.gz",
+                "module_path": "_inference_encoder",
+                "freeze": false
+            }
+        },
+        "output_feedforward": {
+            "_pretrained": {
+                "archive_file": "serialization_dir/final_esim_glove_snli_multinli_for_multirc/model.tar.gz",
+                "module_path": "_output_feedforward",
+                "freeze": false
+            }
+        },
+        "output_logit": {
+            "_pretrained": {
+                "archive_file": "serialization_dir/final_esim_glove_snli_multinli_for_multirc/model.tar.gz",
+                "module_path": "_output_logit",
+                "freeze": false
+            }
+        },
+        "projection_feedforward": {
+            "_pretrained": {
+                "archive_file": "serialization_dir/final_esim_glove_snli_multinli_for_multirc/model.tar.gz",
+                "module_path": "_projection_feedforward",
+                "freeze": false
+            }
+        },
+        "encoder": {
+            "_pretrained": {
+                "archive_file": "serialization_dir/final_esim_glove_snli_multinli_for_multirc/model.tar.gz",
+                "module_path": "_encoder",
+                "freeze": false
+            }  
+        },
+
+        // multee configs
+        "contextualize_pair_comparators": true,
+        "coverage_loss": {
+            "type": "bce"
+        },
+        "final_feedforward": {
+            "activations": [
+                "relu",
+                "relu",
+                "linear"
+            ],
+            "dropout": [
+                0.2,
+                0.2,
+                0
+            ],
+            "hidden_dims": [
+                300,
+                300,
+                3
+            ],
+            "input_dim": 300,
+            "num_layers": 3
+        },
+        "initializer": [
+            [
+                ".*linear_layers.*weight",
+                {
+                    "type": "xavier_uniform"
+                }
+            ],
+            [
+                ".*linear_layers.*bias",
+                {
+                    "type": "zero"
+                }
+            ],
+            [
+                ".*weight_ih.*",
+                {
+                    "type": "xavier_uniform"
+                }
+            ],
+            [
+                ".*weight_hh.*",
+                {
+                    "type": "orthogonal"
+                }
+            ],
+            [
+                ".*bias_ih.*",
+                {
+                    "type": "zero"
+                }
+            ],
+            [
+                ".*bias_hh.*",
+                {
+                    "type": "lstm_hidden_bias"
+                }
+            ],
+            // To make sure transferred modules don't get reinitialized.
+            [
+                ".*_text_field_embedder.*",
+                "prevent"
+            ],
+            [
+                ".*_encoder.*",
+                "prevent"
+            ],
+            [
+                ".*_projection_feedforward.*",
+                "prevent"
+            ],
+            [
+                ".*_inference_encoder.*",
+                "prevent"
+            ],
+            [
+                ".*_output_feedforward.*",
+                "prevent"
+            ],
+            [
+                ".*_output_logit.*",
+                "prevent"
+            ],
+        ],
+
+        "pair_context_encoder": {
+            "bidirectional": true,
+            "hidden_size": 300,
+            "input_size": 300,
+            "num_layers": 1,
+            "type": "lstm"
+        },
+        "pair_feedforward": {
+            "activations": [
+                "relu",
+                "linear"
+            ],
+            "dropout": [
+                0.2,
+                0
+            ],
+            "hidden_dims": [
+                300,
+                1
+            ],
+            "input_dim": 900,
+            "num_layers": 2
+        },
+    },
+ 
+    "iterator": {
+        "batch_size": 4,
+        "sorting_keys": [
+            [
+                "premises",
+                "list_num_tokens"
+            ],
+            [
+                "hypotheses",
+                "list_num_tokens"
+            ],
+
+        ],
+        "type": "bucket"
+    },
+
+    "trainer": {
+        "cuda_device": 0,
+        "grad_norm": 10,
+        "learning_rate_scheduler": {
+            "factor": 0.5,
+            "mode": "max",
+            "patience": 0,
+            "type": "reduce_on_plateau"
+        },
+        "num_epochs": 75,
+        "num_serialized_models_to_keep": 10,
+        "optimizer": {
+            "lr": 0.0004,
+            "type": "adam"
+        },
+        "patience": 5,
+        "validation_metric": "+entailment_f1"
+    },
+ 
+    "vocabulary": {
+        "directory_path": "vocab_for_multirc",
+        "extend": false
+    }
+}
