@@ -12,7 +12,7 @@ This is the code for Multee model described in our NAACL 2019 paper: ["Repurposi
 ### 1. Download the data for SNLI, MultiNLI, OpenBookQA and MultiRC
 
 ```bash
-bash bash setup_data.sh
+bash scripts/setup_data.sh
 ```
 
 ### 2. Rank OpenBookQA knowledge sources
