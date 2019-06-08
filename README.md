@@ -47,6 +47,7 @@ cd ..
 
 ```bash
 conda create -n multee python=3.6
+conda activate multee
 bash scripts/install_requirements.sh
 ```
 
@@ -73,21 +74,19 @@ bash scripts/download_trained_models.sh
 To make predictions with trained Multee model on OpenBookQA
 
 ```bash
-# Make predictions on MultiRC test dataset
-
-python run.py predict-with-vocab-extension trained_models/final_multee_glove_openbookqa.tar.gz \
+# Make predictions on OpenBookQA test dataset
+python run.py predict-with-vocab-expansion trained_models/final_multee_glove_openbookqa.tar.gz \
                                           data/preprocessed/openbookqa/openbookqa-test-processed-questions.jsonl \
-                                          --predictor multiple_correct_mcq_entailment \
+                                          --predictor single_correct_mcq_entailment \
                                           --output-file predictions/openbookqa-test-predictions.jsonl \
                                           --batch-size 10 \
-                                          --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}' \
+                                          --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}'
 
 # Convert OpenBookQA predictions to official format.
+python evaluation_scripts/openbookqa_predictions_to_official_format.py predictions/openbookqa-test-predictions.jsonl predictions/openbookqa-test-official-predictions.jsonl
 
-python evaluation_scripts/openbookqa_predictions_to_official_format.py serialization_dir/multee_glove_openbookqa/openbookqa-test-processed-questions-predictions.jsonl serialization_dir/multee_glove_openbookqa/openbookqa-test-processed-questions-official-predictions.jsonl
-
-
-python evaluation_scripts/evaluate_openbookqa_predictions.py data/raw/openbookqa_1.0/openbookqa_1.0_dev.json serialization_dir/multee_glove_openbookqa/openbookqa-test-processed-questions-official-predictions.jsonl
+# # Evaluate OpenBookQA predictions.
+python evaluation_scripts/evaluate_openbookqa_predictions.py data/raw/OpenBookQA-V1-Sep2018/Data/Main/test.jsonl predictions/openbookqa-test-official-predictions.jsonl
 ```
 
 To directly evaluate with trained Multee model on OpenBookQA
@@ -96,7 +95,7 @@ To directly evaluate with trained Multee model on OpenBookQA
 python run.py evaluate trained_models/final_multee_glove_openbookqa.tar.gz \
                                       data/preprocessed/openbookqa/openbookqa-test-processed-questions.jsonl \
                                       --extend-vocab \
-                                      --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}' \
+                                      --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}'
 ```
 
 
@@ -106,29 +105,27 @@ To make predictions with trained Multee model on MultiRC
 
 ```bash
 # Make predictions on MultiRC dev dataset
-
-python run.py predict-with-vocab-extension trained_models/final_multee_glove_multirc.tar.gz \
+python run.py predict-with-vocab-expansion trained_models/final_multee_glove_multirc.tar.gz \
                                           data/preprocessed/multirc/multirc-dev-processed-questions.jsonl \
                                           --predictor multiple_correct_mcq_entailment \
                                           --output-file predictions/multirc-dev-predictions.jsonl \
                                           --batch-size 10  \
-                                          --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}' \
+                                          --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}'
 
 # Convert MultiRC predictions to official format.
+python evaluation_scripts/multirc_predictions_to_official_format.py predictions/multirc-dev-predictions.jsonl predictions/multirc-dev-official-questions.jsonl
 
-python evaluation_scripts/multirc_predictions_to_official_format.py serialization_dir/multee_glove_multirc/multirc-dev-processed-questions-predictions.jsonl serialization_dir/multee_glove_multirc/multirc-dev-processed-questions-official-predictions.jsonl
-
-
-python evaluation_scripts/evaluate_multirc_predictions.py data/raw/multirc_1.0/multirc_1.0_dev.json serialization_dir/multee_glove_multirc/multirc-dev-processed-questions-official-predictions.jsonl
+# Evaluate MultiRC predictions.
+python evaluation_scripts/evaluate_multirc_predictions.py data/raw/multirc_1.0/multirc_1.0_dev.json predictions/multirc-dev-official-questions.jsonl
 ```
 
 To directly evaluate with trained Multee model on MultiRC
 
-```
+```bash
 python run.py evaluate trained_models/final_multee_glove_multirc.tar.gz \
                                       data/preprocessed/multirc/multirc-dev-processed-questions.jsonl \
                                       --extend-vocab \
-                                      --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}' \
+                                      --embedding-sources-mapping  '{"_text_field_embedder.token_embedder_tokens": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.840B.300d.txt.gz"}'
 ```
 
 Minor Note: You won't need to pass `--embedding-sources-mapping` in `evaluate` and `predict-with-vocab-expansion` commands after [this](https://github.com/allenai/allennlp/pull/2899) PR is merged in allennlp.
