@@ -34,7 +34,7 @@ nlp = spacy.load('en')
 
 if __name__ == "__main__":
 
-    set_names = ["train", "dev", "test"]
+    set_names = ["train", "dev"]
     for set_name in set_names:
         print(f"Processing {set_name} set ...")
         dataset_path = f"data/raw/multirc_1.0/multirc_1.0_{set_name}.json"

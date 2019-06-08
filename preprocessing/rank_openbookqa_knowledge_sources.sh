@@ -3,8 +3,8 @@
 set -e
 set -x
 
-export DATA_DIR_ROOT=../temp/data/raw
-export KNOWLEDGE_DIR_ROOT=../temp/data/raw/OpenBookQA-V1-Sep2018/Data/knowledge
+export DATA_DIR_ROOT=../data/raw
+export KNOWLEDGE_DIR_ROOT=../data/raw/OpenBookQA-V1-Sep2018/Data/knowledge
 export OPENBOOKQA_DIR=${DATA_DIR_ROOT}/OpenBookQA-V1-Sep2018
 export OUTPUT_DIR=${OPENBOOKQA_DIR}/Data/Main/ranked_knowledge
 
