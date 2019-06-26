@@ -180,7 +180,7 @@ local deployment = {
                     {
                         name: fullyQualifiedName,
                         image: image,
-                        args: [ 'server/start.py', '--prod' ],
+                        args: [ '/app/start_server.sh' ],
                         readinessProbe: readinessProbe,
                         livenessProbe: livenessProbe,
                         resources: {

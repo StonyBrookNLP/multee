@@ -1,0 +1,10 @@
+# Local venv files are unnecessary when running docker build
+venv
+
+# These files are big and not needed to be copied to Docker when running docker build
+trained_models/final_multee_glove_multirc.tar.gz
+trained_models/final_esim_glove_snli_multinli_for_multirc.tar.gz
+
+# But don't exclude these files, because we need them when running docker build
+# trained_models/final_esim_glove_snli_multinli_for_openbookqa.tar.gz
+# trained_models/final_multee_glove_openbookqa.tar.gz
