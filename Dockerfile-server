@@ -4,8 +4,8 @@ FROM allennlp/allennlp:v0.8.4
 WORKDIR /app
 
 # These model files are needed
-COPY trained_models/final_multee_glove_openbookqa.tar.gz                 /app/trained_models/final_multee_glove_openbookqa.tar.gz
-COPY trained_models/final_esim_glove_snli_multinli_for_openbookqa.tar.gz /app/trained_models/final_esim_glove_snli_multinli_for_openbookqa.tar.gz
+ADD http://data.allenai.org/downloads/multee/final_multee_glove_openbookqa_3Jun19.tar.gz                 /app/trained_models/final_multee_glove_openbookqa.tar.gz
+ADD http://data.allenai.org/downloads/multee/final_esim_glove_snli_multinli_for_openbookqa_3Jun19.tar.gz /app/trained_models/final_esim_glove_snli_multinli_for_openbookqa.tar.gz
 
 # Install Python dependencies
 COPY requirements.txt /app
