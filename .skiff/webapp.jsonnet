@@ -180,7 +180,7 @@ local deployment = {
                     {
                         name: fullyQualifiedName,
                         image: image,
-                        args: [ '/app/start_server.sh' ],
+                        command: [ '/app/start_server.sh' ],
                         readinessProbe: readinessProbe,
                         livenessProbe: livenessProbe,
                         resources: {
