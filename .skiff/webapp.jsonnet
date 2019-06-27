@@ -136,10 +136,10 @@ local ingress = {
 // When an application is not ready traffic will instead go to other ready pods.
 // A live pod can also become unready again if the probe fails `failureThreshold` times.
 local readinessProbe = {
-    initialDelaySeconds: 30,  // Use a longer delay if your app loads a large model.
+    initialDelaySeconds: 60,  // Use a longer delay if your app loads a large model.
     timeoutSeconds: 10,
     httpGet: {
-        path: '/health?check=readiness',
+        path: '/?healthcheck=readiness',
         port: config.httpPort,
         scheme: 'HTTP'
     }
@@ -149,7 +149,7 @@ local readinessProbe = {
 // the pod. Here we simply check to make sure that the HTTP server is still
 // listening on the exposed port.
 local livenessProbe = {
-    initialDelaySeconds: 30,  // Use a longer delay if your app loads a large model.
+    initialDelaySeconds: 60,  // Use a longer delay if your app loads a large model.
     tcpSocket: {
         port: config.httpPort
     }
