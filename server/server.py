@@ -7,6 +7,7 @@ import argparse
 import json
 import logging
 import os
+import random
 import re
 import sys
 
@@ -137,14 +138,29 @@ def make_app(predictor: Predictor,
 
         internal_request = prepare_internal_request(q)
 
-        prediction = predictor.predict_json(internal_request)
+        internal_prediction = predictor.predict_json(internal_request)
         if sanitizer is not None:
-            prediction = sanitizer(prediction)
+            internal_prediction = sanitizer(internal_prediction)
 
-        log_blob = {"inputs": internal_request, "outputs": prediction}
-        logger.info("prediction: %s", json.dumps(log_blob))
+        prediction = create_prediction(q["choices"], internal_prediction)
 
+        logger.info("prediction: %s", json.dumps(prediction))
         return jsonify(prediction)
+
+    def create_prediction(choices, internal_prediction):
+        """Make a prediction that passes the Aristo Question Predictions schema: https://json-schema.allenai.org/"""
+
+        pred_choices = []
+        for choice, probability in zip(choices, internal_prediction["label_probs"]):
+            pred_choices.append({"label": choice["label"], "score": probability})
+
+        return {
+            "id": str(random.randint(1000, 9999)),
+            "prediction": {
+                "choices": pred_choices
+            },
+            "diagnostics": internal_prediction
+        }
 
     def prepare_internal_request(q):
         ihypothesis = implicit_hypothesis(q["stem"])
