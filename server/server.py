@@ -1,9 +1,8 @@
 # This is a fork of the AllenNLP simple server program
 # https://github.com/allenai/allennlp/blob/master/allennlp/service/server_simple.py
 #
-# For invocation, see start_server.sh in the parent directory.
+# For invocation, see start-server*.sh in the parent directory.
 
-from typing import Callable
 import argparse
 import json
 import logging
@@ -23,7 +22,12 @@ from allennlp.predictors import Predictor
 
 from hypothesis.explicit import explicit_hypothesis
 from hypothesis.implicit import implicit_hypothesis
-from ir.elasticsearch import retrieve
+from premise_retriever import retrievers
+
+from typing import Callable
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+import boto3
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -45,6 +49,7 @@ class ServerError(Exception):
 
 
 def make_app(predictor: Predictor,
+             premise_retriever: retrievers.PremiseRetriever,
              static_dir: str = None,
              sanitizer: Callable[[JsonDict], JsonDict] = None) -> Flask:
     """
@@ -151,21 +156,10 @@ def make_app(predictor: Predictor,
 
         premises = []
         for c in q["choices"]:
-            premises.append(retrieve(q["stem"], c["text"]))
+            premises += premise_retriever(q["stem"], c["text"])
 
-        # TODO: delete this when retrieve() does retrieval
-        premises = [
-            "Sky color is simply the color of the sky.",
-            "It's the color of the sea, color of the sky.",
-            "Put the sky reflection with the sky colors.",
-            "The sky color, as the name implies, is the color of the sky in the environment.",
-            "Thus having the color of the sky the color of the sky.",
-            "Mix the color of the sky with the color of the Sun.",
-            "The color is a medium sky blue color.",
-            "Colors of the rainbow or the sky rising.",
-            "A panoramic sunset colors the sky.",
-            "Blue is the color of the sky.",
-        ]
+        # keep only unique premises, and sort them for consistency
+        premises = sorted(set(premises))
 
         return {
             'premises': premises,
@@ -189,12 +183,66 @@ def _get_predictor(args: argparse.Namespace) -> Predictor:
     return Predictor.from_archive(archive, args.predictor)
 
 
-def main(args):
-    # Executing this file with no extra options runs the simple service with the bidaf test fixture
-    # and the machine-comprehension predictor. There's no good reason you'd want
-    # to do this, except possibly to test changes to the stock HTML).
+ENV_VAR_AWS_ES_HOSTNAME = "AWS_ES_HOSTNAME"
+ENV_VAR_AWS_ES_REGION = "AWS_ES_REGION"
+ENV_VAR_AWS_ES_INDEX = "AWS_ES_INDEX"
+ENV_VAR_AWS_ES_DOCUMENT_TYPE = "AWS_ES_DOCUMENT_TYPE"
+ENV_VAR_AWS_ES_FIELD_NAME = "AWS_ES_FIELD_NAME"
 
-    parser = argparse.ArgumentParser(description='Serve up a simple model')
+
+def _get_premise_retriever(name) -> retrievers.PremiseRetriever:
+    if name == "aws-es":
+        needed_env_vars = [
+            ENV_VAR_AWS_ES_HOSTNAME,
+            ENV_VAR_AWS_ES_REGION,
+            ENV_VAR_AWS_ES_INDEX,
+            ENV_VAR_AWS_ES_DOCUMENT_TYPE,
+            ENV_VAR_AWS_ES_FIELD_NAME
+        ]
+        for var in needed_env_vars:
+            if var not in os.environ:
+                print(f"Missing env var {var}")
+                sys.exit(1)
+
+        credentials = boto3.Session().get_credentials()
+        awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, os.environ[ENV_VAR_AWS_ES_REGION], 'es')
+        client = Elasticsearch(
+            hosts=[{'host': os.environ[ENV_VAR_AWS_ES_HOSTNAME], 'port': 443}],
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+            connection_class=RequestsHttpConnection
+        )
+
+        return retrievers.elasticsearch(
+            client=client,
+            index=os.environ[ENV_VAR_AWS_ES_INDEX],
+            document_type=os.environ[ENV_VAR_AWS_ES_DOCUMENT_TYPE],
+            field_name=os.environ[ENV_VAR_AWS_ES_FIELD_NAME]
+        )
+
+    if name == "hard-coded":
+        return retrievers.hard_coded(
+            premises=[
+                "Sky color is simply the color of the sky.",
+                "It's the color of the sea, color of the sky.",
+                "Put the sky reflection with the sky colors.",
+                "The sky color, as the name implies, is the color of the sky in the environment.",
+                "Thus having the color of the sky the color of the sky.",
+                "Mix the color of the sky with the color of the Sun.",
+                "The color is a medium sky blue color.",
+                "Colors of the rainbow or the sky rising.",
+                "A panoramic sunset colors the sky.",
+                "Blue is the color of the sky.",
+            ]
+        )
+
+    print(f"Unknown premise retriever: {name}")
+    sys.exit(1)
+
+
+def main(args):
+    parser = argparse.ArgumentParser(description='Multee server')
 
     parser.add_argument('--archive-path', type=str, required=True, help='path to trained archive file')
     parser.add_argument('--predictor', type=str, required=True, help='name of predictor')
@@ -205,6 +253,8 @@ def main(args):
                         help='a JSON structure used to override the experiment configuration')
     parser.add_argument('--static-dir', type=str, help='serve index.html from this directory')
     parser.add_argument('--port', type=int, default=8000, help='port to serve the demo on')
+    parser.add_argument('--premise-retriever', type=str, default="hard-coded",
+                        help='the kind of premise retriever to use')
 
     parser.add_argument('--include-package',
                         type=str,
@@ -214,6 +264,9 @@ def main(args):
 
     args = parser.parse_args(args)
 
+    print(f"Preparing premise retriever...")
+    premise_retriever: retrievers.PremiseRetriever = _get_premise_retriever(args.premise_retriever)
+
     print(f"Loading modules...")
     for package_name in args.include_package:
         import_submodules(package_name)
@@ -222,8 +275,11 @@ def main(args):
     predictor = _get_predictor(args)
 
     print(f"Starting server...")
-    app = make_app(predictor=predictor,
-                   static_dir=args.static_dir)
+    app = make_app(
+        predictor=predictor,
+        premise_retriever=premise_retriever,
+        static_dir=args.static_dir
+    )
     CORS(app)
     http_server = WSGIServer(('0.0.0.0', args.port), app)
 

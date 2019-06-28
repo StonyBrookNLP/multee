@@ -1,0 +1,6 @@
+# Requirements needed for the Multee web server
+boto3
+elasticsearch>=6.0.0,<7.0.0
+elasticsearch-dsl>=6.0.0,<7.0.0
+requests
+requests-aws4auth

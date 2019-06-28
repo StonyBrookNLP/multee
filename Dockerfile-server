@@ -10,21 +10,22 @@ ADD http://data.allenai.org/downloads/multee/final_esim_glove_snli_multinli_for_
 # Install Python dependencies
 COPY requirements.txt /app
 RUN pip install -r requirements.txt
+RUN pip install -r requirements-server.txt
 
 # SpaCY will download this on start up, but we do it here for efficiency
 RUN spacy download en_core_web_sm
 
 # Now for our our application code
-RUN mkdir -p         /app/server
-ADD server           /app/server/
+RUN mkdir -p                  /app/server
+ADD server                    /app/server/
+                     
+RUN mkdir -p                  /app/lib
+ADD lib                       /app/lib
+                     
+RUN mkdir -p                  /app/hypothesis
+ADD hypothesis                /app/hypothesis
+                     
+RUN mkdir -p                  /app/premise_retriever
+ADD premise_retriever         /app/premise_retriever
 
-RUN mkdir -p         /app/lib
-ADD lib              /app/lib
-
-RUN mkdir -p         /app/hypothesis
-ADD hypothesis       /app/hypothesis
-
-RUN mkdir -p         /app/ir
-ADD ir               /app/ir
-
-COPY start_server.sh /app
+COPY start-server-on-skiff.sh /app
