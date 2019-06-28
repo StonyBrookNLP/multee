@@ -9,6 +9,7 @@ ADD http://data.allenai.org/downloads/multee/final_esim_glove_snli_multinli_for_
 
 # Install Python dependencies
 COPY requirements.txt /app
+COPY requirements-server.txt /app
 RUN pip install -r requirements.txt
 RUN pip install -r requirements-server.txt
 
