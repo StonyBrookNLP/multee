@@ -13,9 +13,9 @@
                         <h2><span>Multee</span></h2>
                         <div class="model__content">
                             <div class="form__field">
-                                <label for="input-mcq">Multiple-choice question</label>
+                                <label for="input-question">Multiple-choice question</label>
                                 <p>Example: <code>What color is the sky? (A) red (B) green (C) blue (D) black</code></p>
-                                <textarea type="text" id="input-mcq" required placeholder="Stem? (A) choice (B) choice (C) ..."></textarea>
+                                <textarea type="text" id="input-question" required placeholder="Stem? (A) choice (B) choice (C) ..."></textarea>
                             </div>
                             <div class="form__field form__field--btn">
                                 <button type="button" class="btn btn--icon-disclosure" onclick="predict()">Predict</button>
@@ -41,7 +41,7 @@
     <script>
     function predict() {
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/predict-mcq');
+        xhr.open('POST', '/predict-question');
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
             if (xhr.status != 200) {
@@ -62,14 +62,14 @@
             // one will notice... famous last words!
             let linkElement = document.createElement("a");
             linkElement.setAttribute("href",
-                "/mcq.html" +
-                "?mcq=" + encodeURIComponent(document.getElementById('input-mcq').value)
+                "/predict-question.html" +
+                "?question=" + encodeURIComponent(document.getElementById('input-question').value)
             );
             linkElement.innerText = "Link to these results.";
 
             let tweakElement = document.createElement("a");
             tweakElement.setAttribute("href",
-                "/internal.html" +
+                "/predict-internal.html" +
                 "?premises=" + encodeURIComponent(premises.join("\n")) +
                 "&hypotheses=" + encodeURIComponent(hypotheses.join("\n"))
             );
@@ -90,7 +90,7 @@
         };
 
         xhr.send(JSON.stringify({
-            'mcq': document.getElementById('input-mcq').value
+            'question': document.getElementById('input-question').value
         }));
 
         document.getElementById("output").innerHTML = "Loading...";
@@ -98,9 +98,9 @@
 
     window.onload = function() {
         let params = (new URL(document.location)).searchParams;
-        let mcq = params.get("mcq");
-        if (mcq) {
-            document.getElementById("input-mcq").value = mcq;
+        let question = params.get("question");
+        if (question) {
+            document.getElementById("input-question").value = question;
             predict();
         }
     }

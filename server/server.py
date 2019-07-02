@@ -119,22 +119,22 @@ def make_app(predictor: Predictor,
                                          "label": splits[i]} for i in range(1, len(splits) - 1, 2)]}
         return None
 
-    @app.route('/predict-mcq', methods=['POST', 'OPTIONS'])
-    def predict_mcq() -> Response:  # pylint: disable=unused-variable
+    @app.route('/predict-question', methods=['POST', 'OPTIONS'])
+    def predict_question() -> Response:  # pylint: disable=unused-variable
         """make a prediction using the specified model and return the results"""
         if request.method == "OPTIONS":
             return Response(response="", status=200)
 
         data = request.get_json()
-        if not data["mcq"]:
-            return Response(status=400, response="Missing mcq")
+        if not data["question"]:
+            return Response(status=400, response="Missing question")
 
-        if isinstance(data["mcq"], str):
-            q = split_mc_question(data["mcq"])
-        elif isinstance(data["mcq"], dict):
-            q = data["mcq"]
+        if isinstance(data["question"], str):
+            q = split_mc_question(data["question"])
+        elif isinstance(data["question"], dict):
+            q = data["question"]
         else:
-            return Response(status=400, response="Unexpected type of mcq: " + str(type(data["mcq"])))
+            return Response(status=400, response="Unexpected type of question: " + str(type(data["question"])))
 
         internal_request = prepare_internal_request(q)
 
