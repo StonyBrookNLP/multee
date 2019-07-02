@@ -13,14 +13,14 @@
                         <h2><span>Multee</span></h2>
                         <div class="model__content">
                             <div class="form__field">
-                                <label for="input-premises">Premises</label>
-                                <p><i>Enter one permise per line</i></p>
-                                <textarea type="text" id="input-premises" required placeholder="One premise per line"></textarea>
-                            </div>
-                            <div class="form__field">
                                 <label for="input-hypotheses">Hypotheses</label>
                                 <p><i>Enter one hypothesis per line</i></p>
                                 <textarea type="text" id="input-hypotheses" required placeholder="One hypothesis per line"></textarea>
+                            </div>
+                            <div class="form__field">
+                                <label for="input-premises">Premises</label>
+                                <p><i>Enter one permise per line</i></p>
+                                <textarea rows=20 type="text" id="input-premises" required placeholder="One premise per line"></textarea>
                             </div>
                             <div class="form__field form__field--btn">
                                 <button type="button" class="btn btn--icon-disclosure" onclick="predict()">Predict</button>
@@ -49,12 +49,32 @@
         xhr.open('POST', '/predict-internal');
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
-            if (xhr.status == 200) {
-                // If you want a more impressive visualization than just
-                // outputting the raw JSON, change this part of the code.
-                var htmlResults = "<pre>" + JSON.stringify(JSON.parse(xhr.responseText), null, 2) + "</pre>";
-                document.getElementById("output").innerHTML = htmlResults;
+            if (xhr.status != 200) {
+                document.getElementById("output").innerHTML = "Got a non-200 response. Check the logs!";
+                return
             }
+
+            let responseStruct = JSON.parse(xhr.responseText)
+
+            let preElement = document.createElement("pre");
+            preElement.innerText = JSON.stringify(responseStruct, null, 2)
+
+            let premises = responseStruct.input.premises;
+            let hypotheses = responseStruct.input.hypotheses;
+
+            let linkElement = document.createElement("a");
+            linkElement.setAttribute("href",
+                "/internal.html" +
+                "?premises=" + encodeURIComponent(premises.join("\n")) +
+                "&hypotheses=" + encodeURIComponent(hypotheses.join("\n"))
+            );
+            linkElement.innerText = "Link to these results.";
+
+            let htmlResults = document.createElement("div");
+            htmlResults.appendChild(preElement);
+            htmlResults.appendChild(linkElement);
+
+            document.getElementById("output").innerHTML = htmlResults.outerHTML;
         };
 
         var premises = document.getElementById('input-premises').value.split(/\n/).map((s) => s.trim()).filter((s) => s.length > 0);
@@ -64,6 +84,25 @@
             'premises': premises,
             'hypotheses': hypotheses,
         }));
+
+        document.getElementById("output").innerHTML = "Loading...";
+    }
+
+    window.onload = function() {
+        let params = (new URL(document.location)).searchParams;
+        let premises = params.get("premises");
+        if (premises) {
+            document.getElementById("input-premises").value = premises;
+        }
+
+        let hypotheses = params.get("hypotheses");
+        if (hypotheses) {
+            document.getElementById("input-hypotheses").value = hypotheses;
+        }
+
+        if (premises && hypotheses) {
+            predict();
+        }
     }
     </script>
 </html>

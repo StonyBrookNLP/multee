@@ -44,17 +44,65 @@
         xhr.open('POST', '/predict-mcq');
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
-            if (xhr.status == 200) {
-                // If you want a more impressive visualization than just
-                // outputting the raw JSON, change this part of the code.
-                var htmlResults = "<pre>" + JSON.stringify(JSON.parse(xhr.responseText), null, 2) + "</pre>";
-                document.getElementById("output").innerHTML = htmlResults;
+            if (xhr.status != 200) {
+                document.getElementById("output").innerHTML = "Got a non-200 response. Check the logs!";
+                return
             }
+
+            let responseStruct = JSON.parse(xhr.responseText)
+
+            let preElement = document.createElement("pre");
+            preElement.innerText = JSON.stringify(responseStruct, null, 2)
+
+            let premises = responseStruct.diagnostics.input.premises;
+            let hypotheses = responseStruct.diagnostics.input.hypotheses;
+
+            // This is making a link to the question in the question text box currently,
+            // which may be different than the response that arrived later. Probably no
+            // one will notice... famous last words!
+            let linkElement = document.createElement("a");
+            linkElement.setAttribute("href",
+                "/mcq.html" +
+                "?mcq=" + encodeURIComponent(document.getElementById('input-mcq').value)
+            );
+            linkElement.innerText = "Link to these results.";
+
+            let tweakElement = document.createElement("a");
+            tweakElement.setAttribute("href",
+                "/internal.html" +
+                "?premises=" + encodeURIComponent(premises.join("\n")) +
+                "&hypotheses=" + encodeURIComponent(hypotheses.join("\n"))
+            );
+            tweakElement.innerText = "Tweak these hypotheses and premises.";
+
+            let htmlResults = document.createElement("div");
+            htmlResults.appendChild(preElement);
+
+            let p = document.createElement("p");
+            p.appendChild(linkElement);
+            htmlResults.appendChild(p);
+
+            p = document.createElement("p");
+            p.appendChild(tweakElement);
+            htmlResults.appendChild(p);
+
+            document.getElementById("output").innerHTML = htmlResults.outerHTML;
         };
 
         xhr.send(JSON.stringify({
             'mcq': document.getElementById('input-mcq').value
         }));
+
+        document.getElementById("output").innerHTML = "Loading...";
+    }
+
+    window.onload = function() {
+        let params = (new URL(document.location)).searchParams;
+        let mcq = params.get("mcq");
+        if (mcq) {
+            document.getElementById("input-mcq").value = mcq;
+            predict();
+        }
     }
     </script>
 </html>
