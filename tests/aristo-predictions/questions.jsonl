@@ -1,0 +1,3 @@
+{ "id": "q1", "question": { "stem": "What color is the sky?", "choices": [ {"label": "A", "text": "red"}, {"label": "B", "text": "green"}, {"label": "C", "text": "blue"} ] } }
+{ "id": "q2", "question": { "stem": "What color is the cow?", "choices": [ {"label": "A", "text": "red"}, {"label": "B", "text": "green"}, {"label": "C", "text": "blue"} ] } }
+{ "id": "q3", "question": { "stem": "What color is the ant?", "choices": [ {"label": "A", "text": "red"}, {"label": "B", "text": "green"}, {"label": "C", "text": "blue"} ] } }

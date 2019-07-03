@@ -180,7 +180,7 @@ local deployment = {
                     {
                         name: fullyQualifiedName,
                         image: image,
-                        command: [ '/app/start-server-on-skiff.sh' ],
+                        command: [ '/app/start-server.sh' ],
                         readinessProbe: readinessProbe,
                         livenessProbe: livenessProbe,
                         resources: {
@@ -199,13 +199,14 @@ local deployment = {
                                 name: 'GIT_SHA',
                                 value: sha
                             },
-                            { "name": "AWS_ES_HOSTNAME",       "valueFrom": { "secretKeyRef": { "key": "AWS_ES_HOSTNAME",       "name": "env-vars" } } },
-                            { "name": "AWS_ES_REGION",         "valueFrom": { "secretKeyRef": { "key": "AWS_ES_REGION",         "name": "env-vars" } } },
-                            { "name": "AWS_ES_INDEX",          "valueFrom": { "secretKeyRef": { "key": "AWS_ES_INDEX",          "name": "env-vars" } } },
-                            { "name": "AWS_ES_DOCUMENT_TYPE",  "valueFrom": { "secretKeyRef": { "key": "AWS_ES_DOCUMENT_TYPE",  "name": "env-vars" } } },
-                            { "name": "AWS_ES_FIELD_NAME",     "valueFrom": { "secretKeyRef": { "key": "AWS_ES_FIELD_NAME",     "name": "env-vars" } } },
-                            { "name": "AWS_ACCESS_KEY_ID",     "valueFrom": { "secretKeyRef": { "key": "AWS_ACCESS_KEY_ID",     "name": "env-vars" } } },
-                            { "name": "AWS_SECRET_ACCESS_KEY", "valueFrom": { "secretKeyRef": { "key": "AWS_SECRET_ACCESS_KEY", "name": "env-vars" } } }
+                            { "name": "MULTEE_PREMISE_RETRIEVER", "value": "aws-es" },
+                            { "name": "AWS_ES_HOSTNAME",          "valueFrom": { "secretKeyRef": { "key": "AWS_ES_HOSTNAME",       "name": "env-vars" } } },
+                            { "name": "AWS_ES_REGION",            "valueFrom": { "secretKeyRef": { "key": "AWS_ES_REGION",         "name": "env-vars" } } },
+                            { "name": "AWS_ES_INDEX",             "valueFrom": { "secretKeyRef": { "key": "AWS_ES_INDEX",          "name": "env-vars" } } },
+                            { "name": "AWS_ES_DOCUMENT_TYPE",     "valueFrom": { "secretKeyRef": { "key": "AWS_ES_DOCUMENT_TYPE",  "name": "env-vars" } } },
+                            { "name": "AWS_ES_FIELD_NAME",        "valueFrom": { "secretKeyRef": { "key": "AWS_ES_FIELD_NAME",     "name": "env-vars" } } },
+                            { "name": "AWS_ACCESS_KEY_ID",        "valueFrom": { "secretKeyRef": { "key": "AWS_ACCESS_KEY_ID",     "name": "env-vars" } } },
+                            { "name": "AWS_SECRET_ACCESS_KEY",    "valueFrom": { "secretKeyRef": { "key": "AWS_SECRET_ACCESS_KEY", "name": "env-vars" } } }
                         ]
                     }
                 ]

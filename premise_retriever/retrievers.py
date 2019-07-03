@@ -1,8 +1,14 @@
+import os
+import sys
 from typing import List, Callable
-from elasticsearch import Elasticsearch
+
+import boto3
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 
 # A PremiseRetriever function takes a question stem and a question choice as input, and returns a list of
 # premises.
+from requests_aws4auth import AWS4Auth
+
 PremiseRetriever = Callable[[str, str], List[str]]
 
 
@@ -10,7 +16,20 @@ PremiseRetriever = Callable[[str, str], List[str]]
 #
 # It is meant for testing and as an example that meets the expected interface. You can copy and changed it to
 # do actual retrieval somehow.
-def hard_coded(premises: List[str]) -> PremiseRetriever:
+def hard_coded() -> PremiseRetriever:
+    premises = [
+        "Sky color is simply the color of the sky.",
+        "It's the color of the sea, color of the sky.",
+        "Put the sky reflection with the sky colors.",
+        "The sky color, as the name implies, is the color of the sky in the environment.",
+        "Thus having the color of the sky the color of the sky.",
+        "Mix the color of the sky with the color of the Sun.",
+        "The color is a medium sky blue color.",
+        "Colors of the rainbow or the sky rising.",
+        "A panoramic sunset colors the sky.",
+        "Blue is the color of the sky.",
+    ]
+
     def retrieve(question_stem: str, choice_text: str) -> List[str]:
         return premises
 
@@ -65,3 +84,57 @@ def elasticsearch(client: Elasticsearch, index: str, document_type: str, field_n
         return sentences
 
     return retrieve
+
+
+# Returns a PremiseRetriever that queries an AWS Elasticsearch instance, configured with env variables
+def aws_elasticsearch() -> PremiseRetriever:
+    env_var_aws_es_hostname = "AWS_ES_HOSTNAME"
+    env_var_aws_es_region = "AWS_ES_REGION"
+    env_var_aws_es_index = "AWS_ES_INDEX"
+    env_var_aws_es_document_type = "AWS_ES_DOCUMENT_TYPE"
+    env_var_aws_es_field_name = "AWS_ES_FIELD_NAME"
+
+    needed_env_vars = [
+        env_var_aws_es_hostname,
+        env_var_aws_es_region,
+        env_var_aws_es_index,
+        env_var_aws_es_document_type,
+        env_var_aws_es_field_name
+    ]
+    for var in needed_env_vars:
+        if var not in os.environ:
+            raise Exception(f"Missing env var {var}")
+
+    credentials = boto3.Session().get_credentials()
+    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, os.environ[env_var_aws_es_region], 'es')
+    client = Elasticsearch(
+        hosts=[{'host': os.environ[env_var_aws_es_hostname], 'port': 443}],
+        http_auth=awsauth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=RequestsHttpConnection
+    )
+
+    return elasticsearch(
+        client=client,
+        index=os.environ[env_var_aws_es_index],
+        document_type=os.environ[env_var_aws_es_document_type],
+        field_name=os.environ[env_var_aws_es_field_name]
+    )
+
+
+# Returns a PremiseRetriever by inspecting environment variables
+def from_environment() -> PremiseRetriever:
+    env_var_premise_retriever = "MULTEE_PREMISE_RETRIEVER"
+
+    if env_var_premise_retriever not in os.environ:
+        raise Exception(f"Missing env var {env_var_premise_retriever}")
+
+    name = os.environ[env_var_premise_retriever]
+    if name == "aws-es":
+        return aws_elasticsearch()
+
+    if name == "hard-coded":
+        return hard_coded()
+
+    raise Exception(f"Unexpected premise retriever in env var {env_var_premise_retriever}: {name}")

@@ -17,16 +17,16 @@ RUN pip install -r requirements-server.txt
 RUN spacy download en_core_web_sm
 
 # Now for our our application code
-RUN mkdir -p                  /app/server
-ADD server                    /app/server/
+RUN mkdir -p          /app/server
+ADD server            /app/server/
                      
-RUN mkdir -p                  /app/lib
-ADD lib                       /app/lib
+RUN mkdir -p          /app/lib
+ADD lib               /app/lib
                      
-RUN mkdir -p                  /app/hypothesis
-ADD hypothesis                /app/hypothesis
+RUN mkdir -p          /app/hypothesis
+ADD hypothesis        /app/hypothesis
                      
-RUN mkdir -p                  /app/premise_retriever
-ADD premise_retriever         /app/premise_retriever
+RUN mkdir -p          /app/premise_retriever
+ADD premise_retriever /app/premise_retriever
 
-COPY start-server-on-skiff.sh /app
+COPY start-server.sh  /app
