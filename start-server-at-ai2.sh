@@ -10,6 +10,8 @@ export MULTEE_PREMISE_RETRIEVER=aws-es
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars we're setting below.
 unset AWS_PROFILE
 
+# Vault secrets were once written with publish-secrets-to-vault.sh
+
 export AWS_ES_HOSTNAME=$(       vault read -field=AWS_ES_HOSTNAME       /secret/aristo/multee-at-ai2/env-vars)
 export AWS_ES_REGION=$(         vault read -field=AWS_ES_REGION         /secret/aristo/multee-at-ai2/env-vars)
 export AWS_ES_INDEX=$(          vault read -field=AWS_ES_INDEX          /secret/aristo/multee-at-ai2/env-vars)
