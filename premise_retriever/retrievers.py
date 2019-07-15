@@ -47,12 +47,13 @@ def hard_coded() -> PremiseRetriever:
 def elasticsearch(client: Elasticsearch, index: str, document_type: str, field_name: str) -> PremiseRetriever:
     # Hard-coded retrieval configuration. Possibly parametrize this.
     max_hits = 10
-    max_stem_length = 40
+    max_stem_length = 1000
 
     def retrieve(stem: str, choice: str) -> List[str]:
         # Docs for syntax: https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl.html
         r = client.search(
             index=index,
+            search_type='dfs_query_then_fetch',
             body={
                 "from": 0,
                 "size": max_hits,
