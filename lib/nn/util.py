@@ -69,7 +69,8 @@ def paragraph2sentences_tensor(paragraphwise_tensor, sentence_lengths):
         # sentencewise_tensor: (num_sentences, sentence_max_seq_len, ...)
         # adjust first dim by max sentence length across all the batch instances.
         padding = max_sentence_length - sentencewise_tensor.shape[1]
-        sentencewise_tensor = F.pad(sentencewise_tensor, pad=(0, 0, 0, padding.int(), 0, 0))
+        padding_tuple = ([0]*(len(sentencewise_tensor.shape)-2)*2) + [0, padding.int(), 0, 0]
+        sentencewise_tensor = F.pad(sentencewise_tensor, pad=padding_tuple)
         sentencewise_tensors.append(sentencewise_tensor)
 
     sentencewise_tensors = torch.nn.utils.rnn.pad_sequence(sentencewise_tensors, batch_first=True)
