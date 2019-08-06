@@ -23,7 +23,7 @@ class EachOutputTimeDistributed(torch.nn.Module):
 
         reshaped_outputs_list = self._module(*reshaped_inputs)
 
-        if not isinstance(reshaped_outputs_list, list):
+        if not isinstance(reshaped_outputs_list, (tuple, list)):
             raise RuntimeError("Module did not return a list in EachOutputTimeDistributed")
 
         outputs_list = []
