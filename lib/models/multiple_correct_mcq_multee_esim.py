@@ -84,7 +84,7 @@ class MultipleCorrectMcqMulteeEsim(MulteeEsim):
 
             premises_attention = output_dict["premises_attention"]
             premises_attentions.append(premises_attention)
-            premises_aggregation_attention = output_dict.get("premises_aggregation_attentions", None)
+            premises_aggregation_attention = output_dict.get("premises_aggregation_attention", None)
             premises_aggregation_attentions.append(premises_aggregation_attention)
             if relevance_presence_mask is not None:
                 coverage_loss = output_dict["coverage_loss"]
