@@ -36,11 +36,13 @@ class SingleCorrectMcqEntailment(Predictor):
         label_probs = output["label_probs"]
         predicted_answer_index = list(label_probs).index(max(label_probs))
         premises_attentions = output.get("premises_attentions", None)
-        
+        premises_aggregation_attentions = output.get("premises_aggregation_attentions", None)
+
         return_json["label_probs"] = label_probs
         return_json["predicted_answer_index"] = predicted_answer_index
         if premises_attentions is not None:
             return_json["premises_attentions"] = premises_attentions
+            return_json["premises_aggregation_attentions"] = premises_aggregation_attentions
         return sanitize(return_json)
 
     def predict_batch_json(self, inputs: List[JsonDict]) -> List[JsonDict]:
@@ -50,15 +52,18 @@ class SingleCorrectMcqEntailment(Predictor):
         for input, output in zip(inputs, outputs):
             return_json = {}
             return_json["input"] = input
-            
+            premises_count = len(input["premises"])
+
             label_probs = output["label_probs"]
             predicted_answer_index = list(label_probs).index(max(label_probs))
             premises_attentions = output.get("premises_attentions", None)
-            
+            premises_aggregation_attentions = output.get("premises_aggregation_attentions", None)
+
             return_json["label_probs"] = label_probs
             return_json["predicted_answer_index"] = predicted_answer_index
             if premises_attentions is not None:
-                return_json["premises_attentions"] = premises_attentions
+                return_json["premises_attentions"] = premises_attentions[:, :premises_count]
+                return_json["premises_aggregation_attentions"] = premises_aggregation_attentions[:, :premises_count]
 
             return_jsons.append(return_json)
         return sanitize(return_jsons)
