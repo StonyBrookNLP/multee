@@ -255,7 +255,7 @@ class EsimComparatorLayer3Plus(torch.nn.Module):
         # output_hidden = self._output_feedforward(v_all)
         output_hidden = self._output_feedforward(v_all)*premise_mask[:, 0].unsqueeze(-1)*hypothesis_mask[:, 0].unsqueeze(-1)
 
-        return output_hidden
+        return output_hidden, h2p_attention
 
     def get_output_dim(self):
         return self._output_feedforward.get_output_dim()

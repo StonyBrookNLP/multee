@@ -74,6 +74,7 @@ class MultipleCorrectMcqMulteeEsim(MulteeEsim):
 
         label_logits = []
         premises_attentions = []
+        premises_aggregation_attentions = []
         coverage_losses = []
         for hypothesis in hypothesis_list:
             output_dict = super().forward(premises=premises, hypothesis=hypothesis,
@@ -81,22 +82,25 @@ class MultipleCorrectMcqMulteeEsim(MulteeEsim):
             individual_logit = output_dict["label_logits"]
             label_logits.append(individual_logit)
 
+            premises_attention = output_dict["premises_attention"]
+            premises_attentions.append(premises_attention)
+            premises_aggregation_attention = output_dict.get("premises_aggregation_attentions", None)
+            premises_aggregation_attentions.append(premises_aggregation_attention)
             if relevance_presence_mask is not None:
-                premises_attention = output_dict["premises_attention"]
-                premises_attentions.append(premises_attention)
                 coverage_loss = output_dict["coverage_loss"]
                 coverage_losses.append(coverage_loss)
 
         label_logits = torch.stack(label_logits, dim=1)
+        premises_attentions = torch.stack(premises_attentions, dim=1)
+        premises_aggregation_attentions = torch.stack(premises_aggregation_attentions, dim=1)
         if relevance_presence_mask is not None:
-            premises_attentions = torch.stack(premises_attentions, dim=1)
             coverage_losses = torch.stack(coverage_losses, dim=0)
 
         label_probs = torch.nn.functional.softmax(label_logits, dim=-1)
         output_dict = {"label_logits": label_logits[:, :, self._label2idx["entailment"]],
-                       "label_probs": label_probs[:, :, self._label2idx["entailment"]]}
-        if relevance_presence_mask is not None:
-            output_dict["premises_attentions"] = premises_attentions
+                       "label_probs": label_probs[:, :, self._label2idx["entailment"]],
+                       "premises_attentions": premises_attentions,
+                       "premises_aggregation_attentions": premises_aggregation_attentions}
 
         if answer_correctness_mask is not None:
             label = ((answer_correctness_mask == 1).long()*self._label2idx["entailment"]

@@ -14,6 +14,7 @@ from allennlp.nn.util import get_text_field_mask, masked_softmax
 
 from lib.nn.util import paragraph2sentences_tensor, sentencewise_scores2paragraph_tokenwise_scores, sentences2paragraph_tensor, masked_divide
 from lib.modules import EsimComparator, CoverageLoss
+from lib.modules.each_output_timedistributed import EachOutputTimeDistributed
 from lib.modules.esim_comparator import EsimComparatorLayer1, EsimComparatorLayer2, EsimComparatorLayer3Plus
 
 
@@ -53,7 +54,7 @@ class MulteeEsim(Model):
 
         self._entailment_comparator_layer_3plus_local = EsimComparatorLayer3Plus(projection_feedforward, inference_encoder,
                                                                                  output_feedforward, dropout)
-        self._td_entailment_comparator_layer_3plus_local = TimeDistributed(self._entailment_comparator_layer_3plus_local)
+        self._td_entailment_comparator_layer_3plus_local = EachOutputTimeDistributed(self._entailment_comparator_layer_3plus_local)
 
         self._entailment_comparator_layer_3plus_global = copy.deepcopy(self._entailment_comparator_layer_3plus_local)
 
@@ -121,7 +122,7 @@ class MulteeEsim(Model):
         similarity_matrix = sentences2paragraph_tensor(similarity_matrices, premises_mask)
 
         # local entailment comparators:
-        local_entailment_comparators = self._td_entailment_comparator_layer_3plus_local(encoded_premises,
+        local_entailment_comparators, _ = self._td_entailment_comparator_layer_3plus_local(encoded_premises,
                                                                                         encoded_hypotheses,
                                                                                         similarity_matrices,
                                                                                         premises_mask,
@@ -143,12 +144,13 @@ class MulteeEsim(Model):
         paragraph_tokenwise_probs = sentencewise_scores2paragraph_tokenwise_scores(premises_attention, premises_mask)
 
         # global entailment comparator:
-        global_entailment_comparator = self._entailment_comparator_layer_3plus_global(encoded_paragraph,
-                                                                                      encoded_hypothesis,
-                                                                                      similarity_matrix,
-                                                                                      paragraph_mask,
-                                                                                      hypothesis_mask,
-                                                                                      paragraph_tokenwise_probs)
+        global_entailment_comparator, h2p_attentions = self._entailment_comparator_layer_3plus_global(encoded_paragraph,
+                                                                                                      encoded_hypothesis,
+                                                                                                      similarity_matrix,
+                                                                                                      paragraph_mask,
+                                                                                                      hypothesis_mask,
+                                                                                                      paragraph_tokenwise_probs)
+        premises_aggregation_attention = paragraph2sentences_tensor(h2p_attentions.sum(dim=1), sentence_lengths).sum(dim=-1)
 
         # weighted local entailment comparator:
         weighted_local_entailment_comparator = torch.sum(premises_attention.unsqueeze(-1)*local_entailment_comparators, dim=1)
@@ -161,7 +163,8 @@ class MulteeEsim(Model):
         label_probs = torch.nn.functional.softmax(label_logits, dim=-1)
 
         output_dict = {"label_logits": label_logits,
-                       "premises_attention": premises_attention}
+                       "premises_attention": premises_attention,
+                       "premises_aggregation_attention": premises_aggregation_attention}
 
         if relevance_presence_mask is not None:
             coverage_loss = self._coverage_loss(pair_entailment_scores, premises_presence_mask, relevance_presence_mask)
