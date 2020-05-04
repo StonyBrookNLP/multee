@@ -163,24 +163,11 @@ python run.py train experiment_configs/final_multee_glove_multirc.json serializa
 If you use this code, please cite our [paper](http://ai2-website.s3.amazonaws.com/publications/Multee-NAACL2019.pdf).
 
 ```
-@article{trivedi2019repurposing,
+@inproceedings{Trivedi2019RepurposingEF,
   title={Repurposing Entailment for Multi-Hop Question Answering Tasks},
-  author={Trivedi, Harsh and Kwon, Heeyoung and Khot, Tushar and Sabharwal, Ashish and Balasubramanian, Niranjan},
-  journal={arXiv preprint arXiv:1904.09380},
+  author={Harsh Trivedi and Heeyoung Kwon and Tushar Khot and Ashish Sabharwal and Niranjan Balasubramanian},
+  booktitle={NAACL-HLT},
   year={2019}
 }
 ```
 
-... and also AllenNLP.
-
-```
-@inproceedings{Gardner2017AllenNLP,
-  title={AllenNLP: A Deep Semantic Natural Language Processing Platform},
-  author={Matt Gardner and Joel Grus and Mark Neumann and Oyvind Tafjord
-    and Pradeep Dasigi and Nelson F. Liu and Matthew Peters and
-    Michael Schmitz and Luke S. Zettlemoyer},
-  year={2017},
-  Eprint = {arXiv:1803.07640},
-}
-
-```
